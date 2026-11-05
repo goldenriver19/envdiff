@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -10,13 +11,21 @@ def parse_env(path):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
+        if line.startswith("export "):
+            line = line[len("export "):].strip()
         if "=" not in line:
             raise ValueError(f"{path}:{line_number}: invalid line: {raw!r}")
         key, value = line.split("=", 1)
         key = key.strip()
         if not key:
             raise ValueError(f"{path}:{line_number}: empty key")
-        values[key] = value.strip().strip('"').strip("'")
+        # Strip inline comments outside quotes.
+        value = value.strip()
+        if value and value[0] not in ('"', "'"):
+            if " #" in value:
+                value = value.split(" #", 1)[0].rstrip()
+        value = value.strip().strip('"').strip("'")
+        values[key] = value
     return values
 
 

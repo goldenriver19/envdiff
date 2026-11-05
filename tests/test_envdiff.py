@@ -23,3 +23,10 @@ def test_ignore_keys():
     right = write_env("A=1\n")
     result = envdiff.compare(envdiff.parse_env(left), envdiff.parse_env(right), ["B"])
     assert result == {"missing": [], "extra": [], "changed": []}
+
+
+def test_export_and_inline_comments():
+    left = write_env('export A=1 # first\nB="two words"\n')
+    right = write_env("A=1\nB=two words # trailing\n")
+    assert envdiff.parse_env(left) == {"A": "1", "B": "two words"}
+    assert envdiff.parse_env(right) == {"A": "1", "B": "two words"}
